@@ -116,3 +116,12 @@ def reckon_relies_on
   end
   relies_on
 end
+
+def relies_on_message(requirement)
+  relies_on = RSpec.configuration.relies_on.fetch(requirement, [])
+  if relies_on.any?
+    "\nOther specs relying on this: \n- #{relies_on.join("\n- ")}"
+  else
+    ""
+  end
+end
