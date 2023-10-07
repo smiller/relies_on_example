@@ -12,7 +12,7 @@ RSpec.describe "with requirement" do
       end
 
       it "is included" do
-        expect(subject).to include :breeding_stock
+        expect(subject).to include_key(:breeding_stock, requirement)
       end
     end
 
@@ -22,7 +22,7 @@ RSpec.describe "with requirement" do
       end
 
       it "is included" do
-        expect(subject).to include :traits
+        expect(subject).to include_key(:traits, requirement)
       end
     end
 
