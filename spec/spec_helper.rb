@@ -97,4 +97,22 @@ RSpec.configure do |config|
   # as the one that triggered the failure.
   Kernel.srand config.seed
 =end
+
+  config.add_setting :relies_on
+
+  config.before(:suite) do
+    config.relies_on = reckon_relies_on
+  end
+end
+
+def reckon_relies_on
+  relies_on = Hash.new { |hash, key| hash[key] = [] }
+  ObjectSpace.each_object(Class).select { |klass| klass < RSpec::Core::ExampleGroup }.each do |klass|
+    instance = klass.new
+    next unless instance.respond_to?(:relies_on)
+
+    relies_on_key = instance.method(:relies_on).call
+    relies_on[relies_on_key] << klass
+  end
+  relies_on
 end
