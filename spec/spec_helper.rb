@@ -1,3 +1,4 @@
+require 'open3'
 require 'pry'
 require 'support/matchers'
 
@@ -115,6 +116,20 @@ def reckon_relies_on
     relies_on_key = instance.method(:relies_on).call
     relies_on[relies_on_key] << klass
   end
+  clone_related_repos
+  stdout, _, _ = Open3.capture3("grep", "-nr", "\"#{this_repo}:", ".")
+  matches = stdout.split("\n")
+  matches.each do |line|
+    file, key = line.split(/\:\s+\"/)
+    key.sub!("#{this_repo}:", "")
+      .sub!("\"", "")
+    if file.include?("/spec/") && file.include?("_spec.rb:")
+      matches = /.\/(\w+)\/([\w\/.]+):(\d+)/.match(file)
+      repo_url = related_repos.select { |x| x[x.rindex('/') + 1..] == matches[1] }.first
+      repo_link = "#{repo_url}/blob/main/#{matches[2]}#L#{matches[3]}"
+      relies_on[key] << repo_link
+    end
+  end
   relies_on
 end
 
@@ -125,4 +140,21 @@ def relies_on_message(requirement)
   else
     ""
   end
+end
+
+def clone_related_repos
+  FileUtils.rm_r("related_repos") if Dir.exist?("related_repos")
+  FileUtils.mkdir("related_repos")
+  FileUtils.cd("related_repos")
+  related_repos.each do |repo|
+    system("git clone #{repo}")
+  end
+end
+
+def this_repo
+  "relies_on_example"
+end
+
+def related_repos
+  ["https://github.com/smiller/relies_on_example_related_repo"]
 end
